@@ -16,8 +16,6 @@ phases:
   post_build:
     commands:
       - echo "Getting API URL..."
-      - aws cloudformation describe-stacks --stack-name $STACK_NAME --query 'Stacks[0].Outputs[0].OutputValue' --output text
-
 artifacts:
   files:
     - packaged.yaml
