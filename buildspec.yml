@@ -1,5 +1,9 @@
 version: 0.2
 
+env:
+  variables:
+    AWS_DEFAULT_REGION: us-east-1
+
 phases:
   install:
     runtime-versions:
@@ -10,14 +14,12 @@ phases:
   build:
     commands:
       - sam build
-      - sam package --s3-bucket $ARTIFACT_BUCKET --output-template-file packaged.yaml
-      - sam deploy --template-file packaged.yaml --stack-name $STACK_NAME --capabilities CAPABILITY_IAM --no-confirm-changeset --no-fail-on-empty-changeset --s3-bucket $ARTIFACT_BUCKET
+      - sam package --s3-bucket $ARTIFACT_BUCKET --output-template-file packaged.yaml --region $AWS_DEFAULT_REGION
+      - sam deploy --template-file packaged.yaml --stack-name $STACK_NAME --capabilities CAPABILITY_IAM --no-confirm-changeset --no-fail-on-empty-changeset --s3-bucket $ARTIFACT_BUCKET --region $AWS_DEFAULT_REGION
 
   post_build:
     commands:
       - echo "Getting API URL..."
-      - aws cloudformation describe-stacks --stack-name $STACK_NAME --query 'Stacks[0].Outputs[0].OutputValue' --output text
-
 artifacts:
   files:
     - packaged.yaml
