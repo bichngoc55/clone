@@ -1,11 +1,11 @@
+// app.js - Version 1
 exports.lambdaHandler = async (event, context) => {
   try {
     return {
       statusCode: 200,
       body: JSON.stringify({
-        message: "Hello World Omega333433!",
+        message: "Hello World VERSION 1 - WORKING!",
       }),
-      //  i love tiktok 3
     };
   } catch (err) {
     return {

@@ -1,7 +1,6 @@
-# Note:  Báo lỗi syntax kệ nó nha vẫn run được
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-Description: Simple serverless app with Lambda and API Gateway
+Description: Simple canary deployment demo
 
 Globals:
   Function:
@@ -13,7 +12,6 @@ Resources:
     Properties:
       Handler: app.lambdaHandler
       CodeUri: src/
-      Description: A simple Lambda function
       Events:
         ApiEvent:
           Type: Api
@@ -22,12 +20,28 @@ Resources:
             Method: GET
       AutoPublishAlias: live
       DeploymentPreference:
-        Type: Linear10PercentEvery1Minute
+        Type: Canary10Percent5Minutes
+        Alarms:
+          - !Ref ErrorAlarm
+
+  ErrorAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-LambdaErrors"
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref HelloWorldFunction
+        - Name: Resource
+          Value: !Sub "${HelloWorldFunction}:live"
 
 Outputs:
   ApiUrl:
-    Description: URL of the API Gateway endpoint
-    Value: !Sub https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello
-  LambdaFunctionArn:
-    Description: ARN of the Lambda function
-    Value: !GetAtt HelloWorldFunction.Arn
+    Description: API Gateway endpoint URL
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello"
